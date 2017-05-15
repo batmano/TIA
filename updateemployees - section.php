@@ -5,9 +5,6 @@
                   
 						
 					<?php 
-					include('funkcie.php'); 
-					
-						
 						ponukaEmployees();
 					?>
 

@@ -5,7 +5,6 @@
                   
 						
 					<?php 
-					include('funkcie.php'); 
 					
 						
 						ponuka();

@@ -22,7 +22,11 @@ http://www.templatemo.com/tm-497-upper
     <link rel="stylesheet" href="css/magnific-popup.css">                                 
     <!-- Magnific popup style (http://dimsemenov.com/plugins/magnific-popup/) -->
     <link rel="stylesheet" href="css/templatemo-style.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js">    </script>                          
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js">    </script>  
+    <script src="charts4php/lib/js/jquery.min.js"></script> 
+    <script src="charts4php/lib/js/chartphp.js"></script> 
+    <link rel="stylesheet" href="charts4php/lib/js/chartphp.css"> 
+                          
 
 </head>
 

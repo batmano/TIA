@@ -150,7 +150,7 @@ if ($link = spoj_s_db()) {
 function showinfo($id) {
 if ($link = spoj_s_db()) {
 	
-	$sql = "SELECT c.first_name, c.last_name, c.current_amount, count(t.transaction_id) as countT, 
+	$sql = "SELECT c.client_id, c.first_name, c.last_name, c.current_amount, count(t.transaction_id) as countT, 
 	case when sum(t.amount) is null then 0 else
 	sum(t.amount) end as sumA , count(distinct pd.sale_id) countP, 
 	
@@ -165,15 +165,25 @@ if ($link = spoj_s_db()) {
 				c.client_id = pd2.client_id and pd2.product_id = 3
 
 			WHERE c.client_id = $id
-			group by c.first_name, c.last_name, c.current_amount";   
+			group by c.client_id, c.first_name, c.last_name, c.current_amount";   
+
+	$sql_tran = "SELECT t.date, receiver_id,  CONCAT( cc.first_name,  ' ', cc.last_name )  as name, t.amount FROM TRANSACTIONS t 
+			join client cc on
+				cc.client_id = t.receiver_id
+			WHERE t.client_id = $id
+			
+			order by t.date DESC";
 
 	$result = mysql_query($sql, $link);
+	$result_tran = mysql_query($sql_tran, $link);
+
 	if ($result) {
 		if (mysql_num_rows($result) == 0){
 			echo "<br> <p >Ziaden klient :( </p>";
 		}
 		else{
 			$row = mysql_fetch_assoc($result);
+			/*echo '<p>'.$row['client_id'].'dpc </p>';*/
 			echo '<div class="client_info">
               <h2 >'.$row['first_name'].' '.$row['last_name'].'</h2><br>
               <p> Pocet transakcii: '.$row['countT'].' </p>
@@ -184,6 +194,30 @@ if ($link = spoj_s_db()) {
 			  </div>';
 			
 		} 
+	}
+
+	if ($result_tran){
+		if (mysql_num_rows($result_tran) == 0){
+			echo "<br> <p >Klient nema ziadne transakcie :( </p>";
+		}
+		else{
+			echo '<p><strong> Transakcie </strong></p>';
+			echo '<table>
+						<tr>
+							<th>Datum</th>
+							<th>Receiver</th>
+							<th>Amount</th>
+						</tr>';
+			while ($trans = mysql_fetch_assoc($result_tran)) {	
+					echo '<tr>';
+					echo "<td>".$trans['date']."</td>";
+					echo "<td>".$trans['name']."</td>";
+					echo "<td>".$trans['amount']."</td>";
+					echo '</tr>';
+							
+				}
+			echo '</table>';
+		}
 	}
 } else {
 	// NEpodarilo sa spojiť s databázovým serverom!
@@ -248,7 +282,32 @@ if ($link = spoj_s_db()) {
         }
 }
 
+function getClientsForMorgage() {
+if ($link = spoj_s_db()) {
+	
+	$sql = "SELECT * FROM CLIENT WHERE client_id not in (-1);";   
 
+	$result = mysql_query($sql, $link);
+	if ($result) {
+		if (mysql_num_rows($result) == 0){
+			echo "<p> Mate len 1 klienta</p>";
+		}
+		else{
+			echo '';
+			echo '<p> Client <select id="client_morgage" class="form-control">';
+				while ($row = mysql_fetch_assoc($result)) {	
+					$meno = $row['first_name']. ' '.$row['last_name'];
+					echo '<option value='.$row['client_id'].' data-othervalue='.$row['current_amount'].'>'.$meno.'</option>';
+							
+				}
+				echo '</select></p>';
+		} 
+	}
+} else {
+	// NEpodarilo sa spojiť s databázovým serverom!
+	echo '<p class="chyba">NEpodarilo sa spojiť s databázovým serverom!</p>';
+        }
+}
 function deleteEmployee($sel) {
 if ($link = spoj_s_db()) {
 	
@@ -500,7 +559,34 @@ function updateclient($id, $fn, $ln) {
 
 ///  INSERT INTO `transactions`( `client_id`, `employee_id`, `amount`, `receiver_id`, `date`) VALUES (1,3,150,2,now());
 
+function addMorgage($id, $amount) {
+	if ($link = spoj_s_db()) {
 
+		echo "ano DPC HYPOTEKA ";
+	
+		/*$sql1 = "INSERT INTO transactions (client_id, employee_id, amount, receiver_id, date) VALUES
+		 (".$id. "," .$eid. ",".$amount.",".$rec.", now());";
+
+
+		//echo $sql1;
+		$client = addUpdateClientAmount($id, $amount*-1);
+		$account = addUpdateAccountAmount($id, $amount*-1);
+		$receiver = addUpdateClientAmount($rec, $amount);
+		$account_recevier = addUpdateAccountAmount($rec, $amount);
+
+		$result = mysql_query($sql1, $link);
+		if ($result && $client &&$receiver && $account && $account_recevier)  
+			echo "TRansakcia vykonana";
+
+	    else {
+			echo mysql_error();
+		}
+		mysql_close($link);*/
+	} else {
+		// NEpodarilo sa spojiť s databázovým serverom!
+		echo 'Nepodarilo sa spojiť s databázovým serverom!';
+	       }
+}	
 
 
 function addTransaction($id, $eid, $rec, $amount) {
@@ -563,4 +649,90 @@ function addUpdateAccountAmount($id, $amount) {
 	} else {
 		return false;
 	       }
+}	
+
+function BestWorkers() {
+	if ($link = spoj_s_db()) {
+		$sql = "select concat(e.first_name, concat( '  ',  e.last_name)) as meno , count(ps.product_id) as pocet
+				from employee e
+				left join product_sold ps on e.employee_id = ps.employee_id
+				GROUP BY e.first_name,  e.last_name
+				";
+
+		$result = mysql_query($sql, $link); // vykonaj dopyt
+		if ($result) {
+			// dopyt sa podarilo vykonať
+			return $result;
+		} else {
+			
+			return null;
+		}
+	} else {
+		// NEpodarilo sa spojiť s databázovým serverom!
+		return false;
+	}
+}
+function BestBranches() {
+	if ($link = spoj_s_db()) {
+		$sql = "SELECT b.name AS meno, COUNT( ps.product_id ) AS pocet
+				FROM branch b
+				LEFT JOIN product_sold ps ON b.branch_id = ps.branch_id
+				GROUP BY b.name ";
+
+		$result = mysql_query($sql, $link); // vykonaj dopyt
+		if ($result) {
+			// dopyt sa podarilo vykonať
+			return $result;
+		} else {
+			
+			return null;
+		}
+	} else {
+		// NEpodarilo sa spojiť s databázovým serverom!
+		return false;
+	}
+}
+
+function create_graph($type) {
+	/*echo $type;
+	echo strlen($type);
+	echo "DP C DPCSDdf";*/
+	
+/*$stack = array( array());
+array_push($stack[0], array("apple", "raspberry"));
+print_r($stack);
+echo "  \n";*/
+
+		 $p = new chartphp(); 
+		 				if ($type == "best_worker"){
+							$p->xlabel = "Pracovnici";
+							$result = BestWorkers();
+						}else{
+							$p->xlabel = "Pobocky";
+							$result = BestBranches();
+						}
+						$data1 = array(array());
+						
+						while ($row = mysql_fetch_assoc($result)) {
+							//print_r(array($row['meno'], $row['pocet']));
+							array_push($data1[0], array($row['meno'], $row['pocet']));
+						}
+
+						//print_r($data1);
+                        $p->data = $data1;
+						
+                        $p->chart_type = "bar"; 
+
+                        // Common Options 
+                        $p->title = $type; 
+                        $p->ylabel = "Pocet predanych produktov"; 
+					
+                        //$p->export = false; 
+                        $p->options["legend"]["show"] = true; 
+                        //$p->series_label = array('Q1','Q2','Q3');  
+
+                        $out = $p->render('c1'); 
+
+
+                        echo $out; 
 }	

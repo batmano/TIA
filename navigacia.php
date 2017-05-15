@@ -5,7 +5,6 @@
       <a class="navbar-brand text-uppercase" href="main.php"><i class="fa fa-bank tm-brand-icon"></i>Small Bank</a>
 
       <button class="navbar-toggler hidden-lg-up" type="button" data-toggle="collapse" data-target="#tmNavbar">
-          &#9776;
       </button>
       <button id="logoff" class="fa fa-power-off tm-brand-icon2"></button></a>
       <div class="collapse navbar-toggleable-md text-xs-center text-uppercase tm-navbar" id="tmNavbar">
@@ -67,11 +66,3 @@
 		});
 
 	</script>
-
-
-
-
-
-
-
-
